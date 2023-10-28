@@ -26,4 +26,8 @@ with websockets.sync.client.connect("ws://localhost:8765") as ws:
             message = ws.recv()
             print(f"Received: {message}")
             if cmd == "log out":
+<<<<<<< HEAD
                 break
+=======
+                break
+>>>>>>> 429acdc50b1c602403a591e9f55936e3dc067165

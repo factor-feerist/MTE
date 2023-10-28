@@ -36,4 +36,8 @@ async def handler(websocket, path):
 start_server = websockets.serve(handler, "localhost", 8765)
  
 asyncio.get_event_loop().run_until_complete(start_server)
+<<<<<<< HEAD
 asyncio.get_event_loop().run_forever()
+=======
+asyncio.get_event_loop().run_forever()
+>>>>>>> 429acdc50b1c602403a591e9f55936e3dc067165
