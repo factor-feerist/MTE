@@ -2,7 +2,7 @@
 
 import tkinter
 from tkinter import Scrollbar, VERTICAL
-import text_editor
+from modules import text_editor
 
 
 class Gui:
