@@ -31,19 +31,28 @@ async def handler(websocket, path):
                 await websocket.send("Имя занято")
                 
     while True:    
-        command = await websocket.recv()
+        message = await websocket.recv()
         #await websocket.send(f"{command}!")
         if len(message) > 4 and message[:4] == 'open':
             #спрашиваем у файл хендлера есть ли файл и передаем содержимое
             await websocket.send(f"OK")
+        if len(message) > 3 and message[:3] == 'new':
+            #создаем новый файл
+            await websocket.send(f"OK")
         #file_handler.parse_command(command)
         #по всем пользователям из файла сеансов, работающих над этим файлом отправить новую версию файла
         if len(message) >= 6 and message[:6] == 'logout':
+            user = message[6:]
             await websocket.send(f"Пока, {user}!")
             break
+        if "; pos [" in message:
+            await manage_received_text_command(websocket, message)
 
     async with lock:
         del sockets[user]
+
+async def manage_received_text_command(websocket, command):
+    print(f"Processed command: {command}")
      
 start_server = websockets.serve(handler, "localhost", 8765)
  

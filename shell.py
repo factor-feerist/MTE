@@ -2,6 +2,7 @@ import cmd
 import os
 import asyncio
 from modules.gui import Gui
+import websockets.sync.client
 try:
     import websockets.sync.client
 except ImportError:
@@ -36,6 +37,8 @@ class MTEShell(cmd.Cmd):
         message = self._ws.recv()
         if message == "OK":
             text = self._ws.recv()
+            gui = Gui(self._ws, text)
+            gui.run()
             #нужно запустить Gui(text) (вставить message как содержимое)
             #уйти на бесконечный цикл обработки операций от Gui
             #self._gui = Gui(text)
@@ -47,7 +50,8 @@ class MTEShell(cmd.Cmd):
         self._ws.send(f'new {file_name}')
         message = self._ws.recv()
         if message == "OK":
-            pass
+            gui = Gui(self._ws)
+            gui.run()
             #нужно запустить Gui("")  (пустой)
             #уйти на бесконечный цикл обработки операций от Gui
             #self._gui = Gui("")
