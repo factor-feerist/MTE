@@ -29,8 +29,8 @@ async def handler(websocket, path):
                 break
             else:
                 await websocket.send("Имя занято")
-                
-    while True:    
+
+    while True:
         message = await websocket.recv()
         #await websocket.send(f"{command}!")
         if len(message) > 4 and message[:4] == 'open':
@@ -53,8 +53,8 @@ async def handler(websocket, path):
 
 async def manage_received_text_command(websocket, command):
     print(f"Processed command: {command}")
-     
+
 start_server = websockets.serve(handler, "localhost", 8765)
- 
+
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()

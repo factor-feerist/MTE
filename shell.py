@@ -1,7 +1,7 @@
 import cmd
 import os
-import asyncio
 from modules.gui import Gui
+from modules.edit_manager import EditManager
 import websockets.sync.client
 try:
     import websockets.sync.client
@@ -22,27 +22,31 @@ class MTEShell(cmd.Cmd):
     def __init__(self):
         super().__init__()
         self._current_directory = os.getcwd()
-        #self.MTE = None
         MTEShell.prompt = f'{self._current_directory}>'
         self._ws = websockets.sync.client.connect("ws://localhost:8765")
+        self.username = ''
+        self.file_name = ''
         print("Connection opened")
 
     def do_login(self, name):
         self._ws.send(f'login {name}')
         message = self._ws.recv()
         print(f"Received: {message}")
+        self.username = name
 
     def do_open(self, file_name):
         self._ws.send(f'open {file_name}')
         message = self._ws.recv()
         if message == "OK":
+            self.file_name = file_name
             text = self._ws.recv()
-            gui = Gui(self._ws, text)
+            operations_handler = EditManager(text, self._ws, self.file_name, self.username)
+            gui = Gui(operations_handler, text, self.file_name, self.username)
             gui.run()
-            #нужно запустить Gui(text) (вставить message как содержимое)
-            #уйти на бесконечный цикл обработки операций от Gui
-            #self._gui = Gui(text)
-            #process_editing()
+            # нужно запустить Gui(text) (вставить message как содержимое)
+            # уйти на бесконечный цикл обработки операций от Gui
+            # self._gui = Gui(text)
+            # process_editing()
         else:
             print(f"File '{file_name}' doesn't exist")
 
@@ -50,15 +54,16 @@ class MTEShell(cmd.Cmd):
         self._ws.send(f'new {file_name}')
         message = self._ws.recv()
         if message == "OK":
-            gui = Gui(self._ws)
+            self.file_name = file_name
+            operations_handler = EditManager('', self._ws, self.file_name, self.username)
+            gui = Gui(operations_handler, '', self.file_name, self.username)
             gui.run()
-            #нужно запустить Gui("")  (пустой)
-            #уйти на бесконечный цикл обработки операций от Gui
-            #self._gui = Gui("")
-            #process_editing()
+            # нужно запустить Gui("")  (пустой)
+            # уйти на бесконечный цикл обработки операций от Gui
+            # self._gui = Gui("")
+            # process_editing()
         else:
             print(f"File '{file_name}' already exists")
-
 
     """def do_cd(self, directory):
         'Changes current directory\n> cd directory'
@@ -102,17 +107,6 @@ class MTEShell(cmd.Cmd):
     def precmd(self, line):
         print()
         return line
-
-    #def process_editing():
-        #while True:
-            #cmd = (await) Gui.get_next_cmd()
-            # если пусто - continue
-            #self._ws.send(cmd)
-            #message = self._ws.recv()
-
-            #print(f"Received: {message}")
-            #if cmd == "log out":
-                #break
 
 
 if __name__ == '__main__':
