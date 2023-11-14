@@ -1,23 +1,28 @@
 # здесь интерфейс самого текстового редактора
+import tkinter
 from tkinter.messagebox import showinfo
-from tkinter import Tk, Text, Scrollbar, Menu, VERTICAL, END
+from tkinter import Tk, Label, Text, Scrollbar, Menu, VERTICAL, END
 
 
 class Gui:
-    def __init__(self, edit_manager, text, file_name, username):
+    def __init__(self, edit_manager, text, file_name, username, edit=True):
         self.window = Tk()
         self.window.title(f"Text editor --- {file_name} --- {username}")
-        self.text = Text(self.window, width=400, height=400, wrap="word")
-        self.text.insert('1.0', text)
-        self.scrollbar = Scrollbar(self.window, orient=VERTICAL, command=self.text.yview)
+        if edit:
+            self.text = Text(self.window, width=400, height=400, wrap="word")
+            self.text.insert('1.0', text)
+            self.scrollbar = Scrollbar(self.window, orient=VERTICAL, command=self.text.yview)
+            self.setup_scrollbar()
+            self.setup_text()
+        else:
+            self.label = Label(self.window, width=400, height=400, text=text, anchor=tkinter.NW)
+            self.label.pack()
         self.operations = edit_manager
         self.file_name = file_name
         self.username = username
         self.menu = Menu(self.window)
         self.file_menu = Menu(self.menu, tearoff=0)
         self.setup_window()
-        self.setup_scrollbar()
-        self.setup_text()
         # self.setup_file_menu()
         self.setup_menu()
         self.setup_key_bindings()
@@ -41,7 +46,9 @@ class Gui:
         self.window.bind("<Key>", self.handle_editing_in_text)
 
     def handle_editing_in_text(self, event):
-        self.operations.process_keyboard_event(event, self.text.get("1.0", END))
+        pressed_key = event.keysym
+        if pressed_key not in ["Control_L", "Alt_L", "Shift_L"]:
+            self.operations.process_text_editing(self.text.get("1.0", END))
 
     def setup_menu(self):
         self.menu.add_cascade(label="File", menu=self.file_menu)

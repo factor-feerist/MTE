@@ -10,12 +10,10 @@ class EditManager:
         self.differ = Differ()
         self.file_name = file_name
         self.username = username
+        self.commands_queue = []
 
-    def process_keyboard_event(self, event, edited_text):
-        pressed_key = event.keysym
+    def process_text_editing(self, edited_text):
         self.text = edited_text
-        if pressed_key in ["Control_L", "Alt_L", "Shift_L"]:
-            return
         self.handle_texts_difference()
 
     def handle_texts_difference(self):
@@ -48,9 +46,16 @@ class EditManager:
     def send_remove_commands(self, to_remove):
         for element in to_remove:
             command = f"user [{self.username}] ; file [{self.file_name}] ; - [{element[1]}] ; pos [{element[0]}]"
+            self.commands_queue.append(command)
             self.server.send(command)
 
     def send_add_commands(self, to_add):
         for element in to_add:
             command = f"user [{self.username}] ; file [{self.file_name}] ; + [{element[1]}] ; pos [{element[0]}]"
+            self.commands_queue.append(command)
             self.server.send(command)
+
+    def get_next_command(self):
+        if len(self.commands_queue) > 0:
+            return self.commands_queue.pop(0)
+        return ""
