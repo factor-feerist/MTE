@@ -58,13 +58,20 @@ class MTEShell(cmd.Cmd):
         if message == "OK":
             self.filename = filename
             text = self._ws.recv()
-            operations_handler = EditManager(text, self._ws, self.filename, self.username)
-            gui = Gui(operations_handler, text, self.filename, self.username)
-            gui.run()
+            gui_thread = threading.Thread(target=runtk, args = (text, self._ws, self.filename, self.username))
+            gui_thread.daemon = True
+            gui_thread.start()
             # нужно запустить Gui(text) (вставить message как содержимое)
             # уйти на бесконечный цикл обработки операций от Gui
             # self._gui = Gui(text)
             # process_editing()
+            while True:
+                try:
+                    message = self._ws.recv(timeout=0.01)
+                    #обновление текста
+                except TimeoutError:
+                    #здесь идет забор из очереди едит менеджера
+                    print('gav')
         else:
             print(f"{message}")
 
@@ -81,11 +88,12 @@ class MTEShell(cmd.Cmd):
             gui_thread.daemon = True
             gui_thread.start()
             while True:
-                data = self._ws.recv()
-                if not data:
+                try:
+                    message = self._ws.recv(timeout=0.01)
+                    #обновление текста
                     print(5)
+                except TimeoutError:
                     #здесь идет забор из очереди едит менеджера
-                else:
                     print(7)
         else:
             print(f"{message}")

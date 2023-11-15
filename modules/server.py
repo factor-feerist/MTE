@@ -28,10 +28,10 @@ async def login_user(websocket):
             if user not in sockets.keys():
                 sockets[user] = websocket
                 await websocket.send("Вы залогинились!")
-                break
+                return user
             else:
                 await websocket.send("Имя занято")
-        return user
+        
 
 
 async def handler(websocket, path):
@@ -46,6 +46,7 @@ async def handler(websocket, path):
         if message[:2] == 'o ':
             try:
                 text = f_handler.open(message[2:], user)
+                await websocket.send(f"OK")
                 await websocket.send(text)
             except Exception as e:
                 await websocket.send(str(e))
