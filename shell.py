@@ -1,6 +1,7 @@
 import cmd
 import os
 import threading
+import time
 from modules.gui import Gui
 from modules.edit_manager import EditManager
 import websockets.sync.client
@@ -20,7 +21,6 @@ class MTEShell(cmd.Cmd):
     intro = 'Welcome to the MTE shell'
     prompt = None
 
-
     def __init__(self):
         super().__init__()
         self._current_directory = os.getcwd()
@@ -32,12 +32,10 @@ class MTEShell(cmd.Cmd):
         self.gui = None
         print("Connection opened")
 
-
-    def runtk(self, text):
+    def runtk(self, text, edit=True):
         self.operations_handler = EditManager(text, self._ws, self.filename, self.username)
-        self.gui = Gui(self.operations_handler, text, self.filename, self.username)                         
+        self.gui = Gui(self.operations_handler, text, self.filename, self.username, edit)                         
         self.gui.window.mainloop()
-
 
     def do_login(self, name):
         if len(name) == 0:
@@ -48,11 +46,12 @@ class MTEShell(cmd.Cmd):
         print(f"Received: {message}")
         self.username = name
 
-
-    def do_logout(self):
+    def do_logout(self, _line):
         self._ws.send('lo')
-        # закрыть консоль
-
+        message = self._ws.recv()
+        print(message)
+        time.sleep(2)
+        bye()
 
     def do_open(self, filename):
         self._ws.send(f'o {filename}')
@@ -63,11 +62,8 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, ))
             gui_thread.daemon = True
             gui_thread.start()
-            # нужно запустить Gui(text) (вставить message как содержимое)
-            # уйти на бесконечный цикл обработки операций от Gui
-            # self._gui = Gui(text)
-            # process_editing()
             while True:
+                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
                 try:
                     text = self._ws.recv(timeout=0.01)
                     self.gui.update_text(text, self.operations_handler)
@@ -77,20 +73,17 @@ class MTEShell(cmd.Cmd):
                         self._ws.send(cmd)
         else:
             print(message)
-
 
     def do_new(self, filename):
         self._ws.send(f'n {filename}')
         message = self._ws.recv()
         if message == "OK":
             self.filename = filename
-            #operations_handler = EditManager('', self._ws, self.filename, self.username)
-            #gui = Gui(operations_handler, '', self.filename, self.username)
-            #теперь это делает функция
             gui_thread = threading.Thread(target=self.runtk, args = ('', ))
             gui_thread.daemon = True
             gui_thread.start()
             while True:
+                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
                 try:
                     text = self._ws.recv(timeout=0.01)
                     self.gui.update_text(text, self.operations_handler)
@@ -101,20 +94,47 @@ class MTEShell(cmd.Cmd):
         else:
             print(message)
 
-    
-    def do_save(self, filename):
-        self._ws.send(f's {filename}')
+    def do_watch(self, filename, version="actual"):
+        self._ws.send(f'w {filename} {version}')
+        message = self._ws.recv()
+        if message == "OK":
+            self.filename = filename
+            text = self._ws.recv()
+            gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
+            gui_thread.daemon = True
+            gui_thread.start()
+            #while True:
+                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+        else:
+            print(message)
+
+    def do_log(self, filename):
+        self._ws.send(f'wl{filename}')
+        message = self._ws.recv()
+        if message == "OK":
+            self.filename = filename
+            text = self._ws.recv()
+            gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
+            gui_thread.daemon = True
+            gui_thread.start()
+            #while True:
+                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+        else:
+            print(message)
+
+    def save(self):
+        self._ws.send(f's {self.filename}')
         message = self._ws.recv()
         if message == "OK":
             message = self._ws.recv()
         print(message)
 
-
-    def do_watch(self, filename):
-        self._ws.send(f'w {filename}')
-        text = self._ws.recv()
-        # открыть файл без возможности редактирования
-
+    def close(self):
+        self._ws.send(f'c {self.username}')
+        message = self._ws.recv()
+        if message == "OK":
+            message = self._ws.recv()
+        print(message)
 
     def precmd(self, line):
         print()

@@ -15,7 +15,6 @@ lock = asyncio.Lock()
 sockets = {}
 f_handler = FileHandler()
 
-
 async def login_user(websocket):
     while True:
         message = await websocket.recv()
@@ -32,76 +31,94 @@ async def login_user(websocket):
             else:
                 await websocket.send("Имя занято")
         
-
-
 async def handler(websocket, path):
     """Принимает команты вида 'ccd+', где cc - имя команды"""
     print("Client connected")
-    user = await login_user(websocket)
+    try:
+        user = None
+        user = await login_user(websocket)
 
-    while True:
-        message = await websocket.recv()
-        #await websocket.send(f"{command}!")
-        
-        if message[:2] == 'o ':
-            try:
-                text = f_handler.open(message[2:], user)
-                await websocket.send(f"OK")
-                await websocket.send(text)
-            except Exception as e:
-                await websocket.send(str(e))
+        while True:
+            message = await websocket.recv()
+            
+            if message[:2] == 'o ':
+                try:
+                    text = f_handler.open(message[2:], user)
+                    await websocket.send(f"OK")
+                    await websocket.send(text)
+                except Exception as e:
+                    await websocket.send(str(e))
 
-        elif message[:2] == 'n ':
-            try:
-                f_handler.new(message[2:], user)
-                await websocket.send(f"OK")
-            except Exception as e:
-                await websocket.send(str(e))
+            elif message[:2] == 'n ':
+                try:
+                    f_handler.new(message[2:], user)
+                    await websocket.send(f"OK")
+                except Exception as e:
+                    await websocket.send(str(e))
 
-        elif message[:2] == 's ':
-            try:
-                version = f_handler.save(message[2:])
-                await websocket.send(f"OK")
-                await websocket.send(f"Version {version} of file {message[2:]} was saved")
-            except Exception as e:
-                await websocket.send(str(e))
+            elif message[:2] == 's ':
+                try:
+                    version = f_handler.save(message[2:])
+                    await websocket.send(f"OK")
+                    await websocket.send(f"Version {version} of file {message[2:]} was saved")
+                except Exception as e:
+                    await websocket.send(str(e))
 
-        elif message[:2] == 'a ':
-            ops = message[2:].split('\\\\')
-            print(*ops)
-            filename = ops[0]
-            text = f_handler.add(*ops)
-            for u in f_handler.get_users_by_filename(filename):
-                if u != user:
-                    await sockets[u].send(text)
+            elif message[:2] == 'a ':
+                ops = message[2:].split('\\\\')
+                filename = ops[0]
+                text = f_handler.add(*ops)
+                for u in f_handler.get_users_by_filename(filename):
+                    if u != user:
+                        await sockets[u].send(text)
 
-        elif message[:2] == 'r ':
-            ops = message[2:].split('\\\\')
-            print(*ops)
-            filename = ops[0]
-            print(ops)
-            text = f_handler.remove(*ops)
-            for u in f_handler.get_users_by_filename(filename):
-                if u != user:
-                    await sockets[u].send(text)
+            elif message[:2] == 'r ':
+                ops = message[2:].split('\\\\')
+                filename = ops[0]
+                text = f_handler.remove(*ops)
+                for u in f_handler.get_users_by_filename(filename):
+                    if u != user:
+                        await sockets[u].send(text)
 
-        elif message[:2] == 'w ':
-            text = f_handler.watch(message[2:].split())
+            elif message[:2] == 'w ':
+                try:
+                    text = f_handler.watch(*message[2:].split())
+                    await websocket.send('OK')
+                    await websocket.send(text)
+                except Exception as e:
+                    await websocket.send(str(e))
 
-        elif message[:2] == 'lo':
-            await websocket.send(f"Пока, {user}!")
-            break
+            elif message[:2] == 'wl':
+                try:
+                    text = f_handler.get_log_by_filename(message[2:])
+                    await websocket.send('OK')
+                    await websocket.send(text)
+                except Exception as e:
+                    await websocket.send(str(e))
 
-        #if "; pos [" in message:
-            #await manage_received_text_command(websocket, message)
+            elif message[:2] == 'lo':
+                await websocket.send(f"Пока, {user}!")
+                break
 
-    async with lock:
-        del sockets[user]
+            elif message[:2] == 'c ':
+                try:
+                    version = f_handler.remove_user_from_files(message[2:])
+                    await websocket.send(f"OK")
+                    await websocket.send(f"File was closed")
+                except Exception as e:
+                    await websocket.send(str(e))
 
-async def manage_received_text_command(websocket, command):
-    print(f"Processed command: {command}")
+        async with lock:
+            del sockets[user]
+        f_handler.remove_user_from_files(user)
+
+    except websockets.exceptions.ConnectionClosedError:
+        if user is not None:
+            async with lock:
+                del sockets[user]
+            f_handler.remove_user_from_files(user)
+        print("Client disconnected")
 
 start_server = websockets.serve(handler, "localhost", 8765)
-
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()

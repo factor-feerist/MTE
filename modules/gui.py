@@ -15,7 +15,7 @@ class Gui:
             self.setup_scrollbar()
             self.setup_text()
         else:
-            self.label = Label(self.window, width=400, height=400, text=text, anchor=tkinter.NW)
+            self.label = Label(self.window, width=400, height=400, text=text, anchor=tkinter.NW, justify="left")
             self.label.pack()
         self.operations = edit_manager
         self.file_name = file_name
