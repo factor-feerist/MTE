@@ -58,17 +58,29 @@ async def handler(websocket, path):
             except Exception as e:
                 await websocket.send(str(e))
 
+        elif message[:2] == 's ':
+            try:
+                version = f_handler.save(message[2:])
+                await websocket.send(f"OK")
+                await websocket.send(f"Version {version} of file {message[2:]} was saved")
+            except Exception as e:
+                await websocket.send(str(e))
+
         elif message[:2] == 'a ':
-            ops = message[2:].split()
+            ops = message[2:].split('\\\\')
+            print(*ops)
             filename = ops[0]
-            text = f_handler.add(ops)
+            text = f_handler.add(*ops)
             for u in f_handler.get_users_by_filename(filename):
-                await sockets[u].send(text)
+                if u != user:
+                    await sockets[u].send(text)
 
         elif message[:2] == 'r ':
-            ops = message[2:].split()
+            ops = message[2:].split('\\\\')
+            print(*ops)
             filename = ops[0]
-            text = f_handler.remove(ops)
+            print(ops)
+            text = f_handler.remove(*ops)
             for u in f_handler.get_users_by_filename(filename):
                 if u != user:
                     await sockets[u].send(text)

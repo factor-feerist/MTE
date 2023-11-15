@@ -54,5 +54,11 @@ class Gui:
         self.menu.add_cascade(label="File", menu=self.file_menu)
         self.menu.add_cascade(label="Info", command=lambda: showinfo("Information", "Text Editor"))
 
+    def update_text(self, text, operations_handler):
+        self.text.delete("1.0", tkinter.END)
+        self.text.insert(tkinter.END, text)
+        operations_handler.prev_text = operations_handler.text
+        operations_handler.text = text
+
     def run(self):
         self.window.mainloop()

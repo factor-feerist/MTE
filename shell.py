@@ -16,12 +16,6 @@ except ImportError:
     import websockets.sync.client
 
 
-def runtk(text, ws, filename, username):
-    operations_handler = EditManager(text, ws, filename, username)
-    gui = Gui(operations_handler, text, filename, username)                         
-    gui.window.mainloop()
-
-
 class MTEShell(cmd.Cmd):
     intro = 'Welcome to the MTE shell'
     prompt = None
@@ -34,7 +28,15 @@ class MTEShell(cmd.Cmd):
         self._ws = websockets.sync.client.connect("ws://localhost:8765")
         self.username = ''
         self.filename = ''
+        self.operations_handler = None
+        self.gui = None
         print("Connection opened")
+
+
+    def runtk(self, text):
+        self.operations_handler = EditManager(text, self._ws, self.filename, self.username)
+        self.gui = Gui(self.operations_handler, text, self.filename, self.username)                         
+        self.gui.window.mainloop()
 
 
     def do_login(self, name):
@@ -58,7 +60,7 @@ class MTEShell(cmd.Cmd):
         if message == "OK":
             self.filename = filename
             text = self._ws.recv()
-            gui_thread = threading.Thread(target=runtk, args = (text, self._ws, self.filename, self.username))
+            gui_thread = threading.Thread(target=self.runtk, args = (text, ))
             gui_thread.daemon = True
             gui_thread.start()
             # нужно запустить Gui(text) (вставить message как содержимое)
@@ -67,13 +69,14 @@ class MTEShell(cmd.Cmd):
             # process_editing()
             while True:
                 try:
-                    message = self._ws.recv(timeout=0.01)
-                    #обновление текста
+                    text = self._ws.recv(timeout=0.01)
+                    self.gui.update_text(text, self.operations_handler)
                 except TimeoutError:
-                    #здесь идет забор из очереди едит менеджера
-                    print('gav')
+                    cmd = self.operations_handler.get_next_command()
+                    if len(cmd) != 0:
+                        self._ws.send(cmd)
         else:
-            print(f"{message}")
+            print(message)
 
 
     def do_new(self, filename):
@@ -84,19 +87,27 @@ class MTEShell(cmd.Cmd):
             #operations_handler = EditManager('', self._ws, self.filename, self.username)
             #gui = Gui(operations_handler, '', self.filename, self.username)
             #теперь это делает функция
-            gui_thread = threading.Thread(target=runtk, args = ('', self._ws, self.filename, self.username))
+            gui_thread = threading.Thread(target=self.runtk, args = ('', ))
             gui_thread.daemon = True
             gui_thread.start()
             while True:
                 try:
-                    message = self._ws.recv(timeout=0.01)
-                    #обновление текста
-                    print(5)
+                    text = self._ws.recv(timeout=0.01)
+                    self.gui.update_text(text, self.operations_handler)
                 except TimeoutError:
-                    #здесь идет забор из очереди едит менеджера
-                    print(7)
+                    cmd = self.operations_handler.get_next_command()
+                    if len(cmd) != 0:
+                        self._ws.send(cmd)
         else:
-            print(f"{message}")
+            print(message)
+
+    
+    def do_save(self, filename):
+        self._ws.send(f's {filename}')
+        message = self._ws.recv()
+        if message == "OK":
+            message = self._ws.recv()
+        print(message)
 
 
     def do_watch(self, filename):

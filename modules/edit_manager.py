@@ -13,6 +13,7 @@ class EditManager:
         self.commands_queue = []
 
     def process_text_editing(self, edited_text):
+        self.prev_text = self.text
         self.text = edited_text
         self.handle_texts_difference()
 
@@ -20,7 +21,6 @@ class EditManager:
         to_add, to_remove = self.find_difference_in_texts()
         self.send_remove_commands(to_remove)
         self.send_add_commands(to_add)
-        self.prev_text = self.text[:]
 
     def find_difference_in_texts(self):
         diff_1 = self.differ.compare(rf"{self.prev_text}", rf"{self.text}")
@@ -45,15 +45,13 @@ class EditManager:
 
     def send_remove_commands(self, to_remove):
         for element in to_remove:
-            command = f"user [{self.username}] ; file [{self.file_name}] ; - [{element[1]}] ; pos [{element[0]}]"
+            command = f"r {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)
-            self.server.send(command)
 
     def send_add_commands(self, to_add):
         for element in to_add:
-            command = f"user [{self.username}] ; file [{self.file_name}] ; + [{element[1]}] ; pos [{element[0]}]"
+            command = f"a {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)
-            self.server.send(command)
 
     def get_next_command(self):
         if len(self.commands_queue) > 0:
