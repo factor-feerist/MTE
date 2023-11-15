@@ -1,4 +1,3 @@
-# здесь интерфейс самого текстового редактора
 import tkinter
 from tkinter.messagebox import showinfo
 from tkinter import Tk, Label, Text, Scrollbar, Menu, VERTICAL, END
@@ -24,7 +23,6 @@ class Gui:
         self.is_closed = False
         self.save_is_pressed = False
         self.window.protocol("WM_DELETE_WINDOW", self.switch_close_flag)
-        #флаг отвечающий за то, будет ли кнопка сейва
 
     def switch_close_flag(self):
         self.is_closed = True
@@ -54,7 +52,8 @@ class Gui:
             self.operations.process_text_editing(self.text.get("1.0", END))
 
     def setup_menu(self):
-        self.menu.add_cascade(label="Save", command=self.switch_save_flag)
+        if self.edit:
+            self.menu.add_cascade(label="Save", command=self.switch_save_flag)
         self.menu.add_cascade(label="Info", command=lambda: showinfo("Information", "Text Editor"))
 
     def update_text(self, text, operations_handler):

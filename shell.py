@@ -110,11 +110,15 @@ class MTEShell(cmd.Cmd):
         else:
             print(message)
 
-    def do_watch(self, filename, version="actual"):
-        self._ws.send(f'w {filename} {version}')
+    def do_watch(self, line):
+        ops = line.split()
+        version = "actual"
+        if len(ops) >= 2:
+            version = ops[1]
+        self._ws.send(f'w {ops[0]} {version}')
         message = self._ws.recv()
         if message == "OK":
-            self.filename = filename
+            self.filename = ops[0]
             text = self._ws.recv()
             gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
             gui_thread.daemon = True
