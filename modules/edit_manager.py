@@ -19,8 +19,8 @@ class EditManager:
 
     def handle_texts_difference(self):
         to_add, to_remove = self.find_difference_in_texts()
-        self.send_remove_commands(to_remove)
-        self.send_add_commands(to_add)
+        self.enqueue_remove_commands(to_remove)
+        self.enqueue_add_commands(to_add)
 
     def find_difference_in_texts(self):
         diff_1 = self.differ.compare(rf"{self.prev_text}", rf"{self.text}")
@@ -43,12 +43,12 @@ class EditManager:
             index += 1 if symbol[0] == edit_mark or symbol[0] == ' ' else 0
         return result
 
-    def send_remove_commands(self, to_remove):
+    def enqueue_remove_commands(self, to_remove):
         for element in to_remove:
             command = f"r {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)
 
-    def send_add_commands(self, to_add):
+    def enqueue_add_commands(self, to_add):
         for element in to_add:
             command = f"a {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)

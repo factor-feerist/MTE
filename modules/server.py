@@ -37,13 +37,15 @@ async def handler(websocket, path):
     try:
         user = None
         user = await login_user(websocket)
+        filename = None
 
         while True:
             message = await websocket.recv()
             
             if message[:2] == 'o ':
                 try:
-                    text = f_handler.open(message[2:], user)
+                    filename = message[2:]
+                    text = f_handler.open(filename, user)
                     await websocket.send(f"OK")
                     await websocket.send(text)
                 except Exception as e:
@@ -51,16 +53,18 @@ async def handler(websocket, path):
 
             elif message[:2] == 'n ':
                 try:
-                    f_handler.new(message[2:], user)
+                    filename = message[2:]
+                    f_handler.new(filename, user)
                     await websocket.send(f"OK")
                 except Exception as e:
                     await websocket.send(str(e))
 
             elif message[:2] == 's ':
                 try:
-                    version = f_handler.save(message[2:])
+                    ops = message[2:].split()
+                    version = f_handler.save(*ops)
                     await websocket.send(f"OK")
-                    await websocket.send(f"Version {version} of file {message[2:]} was saved")
+                    await websocket.send(f"Version {version} of file {ops[0]} was saved")
                 except Exception as e:
                     await websocket.send(str(e))
 
@@ -104,7 +108,7 @@ async def handler(websocket, path):
                 try:
                     version = f_handler.remove_user_from_files(message[2:])
                     await websocket.send(f"OK")
-                    await websocket.send(f"File was closed")
+                    await websocket.send(f"File {filename} was closed")
                 except Exception as e:
                     await websocket.send(str(e))
 

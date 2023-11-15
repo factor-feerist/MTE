@@ -8,24 +8,30 @@ class Gui:
     def __init__(self, edit_manager, text, file_name, username, edit=True):
         self.window = Tk()
         self.window.title(f"Text editor --- {file_name} --- {username}")
-        if edit:
-            self.text = Text(self.window, width=400, height=400, wrap="word")
-            self.text.insert('1.0', text)
-            self.scrollbar = Scrollbar(self.window, orient=VERTICAL, command=self.text.yview)
-            self.setup_scrollbar()
-            self.setup_text()
-        else:
-            self.label = Label(self.window, width=400, height=400, text=text, anchor=tkinter.NW, justify="left")
-            self.label.pack()
+        self.edit = edit
+        self.text = Text(self.window, width=400, height=400, wrap="word")
+        self.text.insert('1.0', text)
+        self.scrollbar = Scrollbar(self.window, orient=VERTICAL, command=self.text.yview)
+        self.setup_scrollbar()
+        self.setup_text()
         self.operations = edit_manager
         self.file_name = file_name
         self.username = username
         self.menu = Menu(self.window)
-        self.file_menu = Menu(self.menu, tearoff=0)
         self.setup_window()
-        # self.setup_file_menu()
         self.setup_menu()
         self.setup_key_bindings()
+        self.is_closed = False
+        self.save_is_pressed = False
+        self.window.protocol("WM_DELETE_WINDOW", self.switch_close_flag)
+        #флаг отвечающий за то, будет ли кнопка сейва
+
+    def switch_close_flag(self):
+        self.is_closed = True
+        self.window.quit()
+
+    def switch_save_flag(self):
+        self.save_is_pressed = True
 
     def setup_window(self):
         self.window.minsize(width=500, height=500)
@@ -39,19 +45,16 @@ class Gui:
     def setup_scrollbar(self):
         self.scrollbar.pack(side="right", fill="y")
 
-    # def setup_file_menu(self):
-    #     self.file_menu.add_command(label="Save file", command=self.operations.save_file)
-
     def setup_key_bindings(self):
         self.window.bind("<Key>", self.handle_editing_in_text)
 
     def handle_editing_in_text(self, event):
         pressed_key = event.keysym
-        if pressed_key not in ["Control_L", "Alt_L", "Shift_L"]:
+        if pressed_key not in ["Control_L", "Alt_L", "Shift_L"] and self.edit:
             self.operations.process_text_editing(self.text.get("1.0", END))
 
     def setup_menu(self):
-        self.menu.add_cascade(label="File", menu=self.file_menu)
+        self.menu.add_cascade(label="Save", command=self.switch_save_flag)
         self.menu.add_cascade(label="Info", command=lambda: showinfo("Information", "Text Editor"))
 
     def update_text(self, text, operations_handler):

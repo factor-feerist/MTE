@@ -33,14 +33,15 @@ class FileHandler:
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual') as f:
             return f.read()
 
-    def save(self, filename):
+    def save(self, filename, username):
         if not os.path.isdir(f'{self._current_directory}\\.rep\\files\\{filename}'):
             raise Exception(f'File {filename} doesn\'t exist')
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual') as f:
             text = f.read()
-        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual_version', 'w') as f:
+        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual_version') as f:
             version = int(f.read())
-            f.write(version + 1)
+        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual_version', 'w') as f:
+            f.write(str(version + 1))
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\{version}', 'w') as f:
             f.write(text)
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\log', 'a') as f:
@@ -57,7 +58,7 @@ class FileHandler:
 
     def add(self, filename, username, index, to_add=''):
         i = int(index)
-        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual', 'r') as f:
+        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual') as f:
             text = f.read()
         text = text[:i] + to_add + text[i:]
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual', 'w') as f:
@@ -69,7 +70,7 @@ class FileHandler:
     def remove(self, filename, username, index, to_remove=''):
         count = len(to_remove)
         i = int(index)
-        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual', 'r') as f:
+        with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual') as f:
             text = f.read()
         text = text[:i] + text[i + count:]
         with open(f'{self._current_directory}\\.rep\\files\\{filename}\\actual', 'w') as f:
@@ -101,4 +102,4 @@ class FileHandler:
             for line in users.split('\n'):
                 ops = line.split('\\\\')
                 if len(ops) == 2 and ops[1] != username:
-                    f.write(f'ops[0]\\\\ops[1]\n')
+                    f.write(f'{ops[0]}\\\\{ops[1]}\n')

@@ -62,8 +62,16 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, ))
             gui_thread.daemon = True
             gui_thread.start()
+            time.sleep(0.01)
             while True:
-                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+                time.sleep(0.01)
+                if self.gui.save_is_pressed:
+                    self.save()
+                    self.gui.save_is_pressed = False
+                if self.gui.is_closed:
+                    self.close()
+                    gui_thread.join(0.05)
+                    break
                 try:
                     text = self._ws.recv(timeout=0.01)
                     self.gui.update_text(text, self.operations_handler)
@@ -82,8 +90,16 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = ('', ))
             gui_thread.daemon = True
             gui_thread.start()
+            time.sleep(0.01)
             while True:
-                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+                time.sleep(0.01)
+                if self.gui.save_is_pressed:
+                    self.save()
+                    self.gui.save_is_pressed = False
+                if self.gui.is_closed:
+                    self.close()
+                    gui_thread.join(0.05)
+                    break
                 try:
                     text = self._ws.recv(timeout=0.01)
                     self.gui.update_text(text, self.operations_handler)
@@ -103,8 +119,13 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
             gui_thread.daemon = True
             gui_thread.start()
-            #while True:
-                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+            time.sleep(0.01)
+            while True:
+                time.sleep(0.01)
+                if self.gui.is_closed:
+                    self.close()
+                    gui_thread.join(0.05)
+                    break
         else:
             print(message)
 
@@ -117,13 +138,18 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
             gui_thread.daemon = True
             gui_thread.start()
-            #while True:
-                #если у гуи нажат сейв - save(filename), если крестик - close(filename) и break
+            time.sleep(0.01)
+            while True:
+                time.sleep(0.01)
+                if self.gui.is_closed:
+                    self.close()
+                    gui_thread.join(0.05)
+                    break
         else:
             print(message)
 
     def save(self):
-        self._ws.send(f's {self.filename}')
+        self._ws.send(f's {self.filename} {self.username}')
         message = self._ws.recv()
         if message == "OK":
             message = self._ws.recv()
