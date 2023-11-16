@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from edit_manager import EditManager
+sys.path.append('../')
+from client.modules.edit_manager import EditManager
 
 class Tests(TestCase):
     def setUp(self):

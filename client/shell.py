@@ -38,6 +38,7 @@ class MTEShell(cmd.Cmd):
         self.gui.window.mainloop()
 
     def do_login(self, name):
+        'Log user in\n> login username'
         if len(name) == 0:
             print("Incorrect name!")
             return
@@ -47,6 +48,7 @@ class MTEShell(cmd.Cmd):
         self.username = name
 
     def do_logout(self, _line):
+        'Log user out\n> logout'
         self._ws.send('lo')
         message = self._ws.recv()
         print(message)
@@ -54,6 +56,7 @@ class MTEShell(cmd.Cmd):
         bye()
 
     def do_open(self, filename):
+        'Open existing file to edit online\n> open filename'
         self._ws.send(f'o {filename}')
         message = self._ws.recv()
         if message == "OK":
@@ -62,7 +65,7 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, ))
             gui_thread.daemon = True
             gui_thread.start()
-            time.sleep(0.01)
+            time.sleep(0.1)
             while True:
                 time.sleep(0.01)
                 if self.gui.save_is_pressed:
@@ -83,6 +86,7 @@ class MTEShell(cmd.Cmd):
             print(message)
 
     def do_new(self, filename):
+        'Creates new file to edit online\n> new filename'
         self._ws.send(f'n {filename}')
         message = self._ws.recv()
         if message == "OK":
@@ -90,7 +94,7 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = ('', ))
             gui_thread.daemon = True
             gui_thread.start()
-            time.sleep(0.01)
+            time.sleep(0.1)
             while True:
                 time.sleep(0.01)
                 if self.gui.save_is_pressed:
@@ -111,6 +115,7 @@ class MTEShell(cmd.Cmd):
             print(message)
 
     def do_watch(self, line):
+        'Shows existing file, changes won\'t appear or save\n> watch filename version\n> watch filename = watch filename "actual"'
         ops = line.split()
         version = "actual"
         if len(ops) >= 2:
@@ -123,7 +128,7 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
             gui_thread.daemon = True
             gui_thread.start()
-            time.sleep(0.01)
+            time.sleep(0.1)
             while True:
                 time.sleep(0.01)
                 if self.gui.is_closed:
@@ -134,6 +139,7 @@ class MTEShell(cmd.Cmd):
             print(message)
 
     def do_log(self, filename):
+        'Shows file changes log\n> log filename'
         self._ws.send(f'wl{filename}')
         message = self._ws.recv()
         if message == "OK":
@@ -142,7 +148,7 @@ class MTEShell(cmd.Cmd):
             gui_thread = threading.Thread(target=self.runtk, args = (text, False,))
             gui_thread.daemon = True
             gui_thread.start()
-            time.sleep(0.01)
+            time.sleep(0.1)
             while True:
                 time.sleep(0.01)
                 if self.gui.is_closed:

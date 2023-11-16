@@ -1,5 +1,5 @@
 import asyncio
-from file_handler import FileHandler
+from modules.file_handler import FileHandler
 try:
     import websockets
 except ImportError:
@@ -121,7 +121,7 @@ async def handler(websocket, path):
             async with lock:
                 del sockets[user]
             f_handler.remove_user_from_files(user)
-        print("Client disconnected")
+    print("Client disconnected")
 
 start_server = websockets.serve(handler, "localhost", 8765)
 asyncio.get_event_loop().run_until_complete(start_server)
