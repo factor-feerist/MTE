@@ -11,7 +11,7 @@ class FileHandler:
             os.mkdir(f'{self._current_directory}\\.rep\\files')
         with open(f'{self._current_directory}\\.rep\\users', 'w'):
             pass
-    
+
     def new(self, filename, username):
         if os.path.isdir(f'{self._current_directory}\\.rep\\files\\'
                          f'{filename}'):

@@ -27,15 +27,15 @@ class FileHandlerTests(TestCase):
         rmtree(self.repository)
 
     def test_new(self):
-        self.handler.new('abc', 'user1')
-        self.assertTrue(os.path.isdir(f'{self.repository}\\files\\abc'))
+        self.handler.new('new', 'user1')
+        self.assertTrue(os.path.isdir(f'{self.repository}\\files\\new'))
         self.assertTrue(os.path.exists(
-            f'{self.repository}\\files\\abc\\actual'))
-        self.assertTrue(os.path.exists(f'{self.repository}\\files\\abc'
+            f'{self.repository}\\files\\new\\actual'))
+        self.assertTrue(os.path.exists(f'{self.repository}\\files\\new'
                                        f'\\actual_version'))
-        self.assertTrue(os.path.exists(f'{self.repository}\\files\\abc\\log'))
+        self.assertTrue(os.path.exists(f'{self.repository}\\files\\new\\log'))
         with open(f'{self.repository}\\users') as f:
-            self.assertTrue('abc\\\\user1\n' in f.read())
+            self.assertTrue('new\\\\user1\n' in f.read())
 
     def test_users_list(self):
         self.handler.new('abc', 'user1')
@@ -56,71 +56,71 @@ class FileHandlerTests(TestCase):
         self.assertEqual(abcd_users, [])
 
     def test_add(self):
-        self.handler.new('abc', 'user1')
-        self.handler.open('abc', 'user2')
-        self.handler.add('abc', 'user1', '0', 'abc')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.new('add', 'user1')
+        self.handler.open('add', 'user2')
+        self.handler.add('add', 'user1', '0', 'abc')
+        with open(f'{self.repository}\\files\\add\\actual') as f:
             self.assertEqual(f.read(), 'abc')
-        self.handler.add('abc', 'user2', '1', 'def')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.add('add', 'user2', '1', 'def')
+        with open(f'{self.repository}\\files\\add\\actual') as f:
             self.assertEqual(f.read(), 'adefbc')
 
     def test_remove(self):
-        self.handler.new('abc', 'user1')
-        self.handler.open('abc', 'user2')
-        self.handler.add('abc', 'user1', '0', 'abc')
-        self.handler.add('abc', 'user2', '1', 'def')
-        self.handler.remove('abc', 'user1', '1', 'd')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.new('remove', 'user1')
+        self.handler.open('remove', 'user2')
+        self.handler.add('remove', 'user1', '0', 'abc')
+        self.handler.add('remove', 'user2', '1', 'def')
+        self.handler.remove('remove', 'user1', '1', 'd')
+        with open(f'{self.repository}\\files\\remove\\actual') as f:
             self.assertEqual(f.read(), 'aefbc')
-        self.handler.remove('abc', 'user2', '2', 'fb')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.remove('remove', 'user2', '2', 'fb')
+        with open(f'{self.repository}\\files\\remove\\actual') as f:
             self.assertEqual(f.read(), 'aec')
 
     def test_open(self):
-        self.handler.new('abc', 'user1')
-        self.handler.add('abc', 'user1', '0', 'abc')
-        self.handler.add('abc', 'user1', '1', 'def')
-        self.handler.remove('abc', 'user1', '1', 'de')
-        text = self.handler.open('abc', 'user2')
+        self.handler.new('open', 'user1')
+        self.handler.add('open', 'user1', '0', 'abc')
+        self.handler.add('open', 'user1', '1', 'def')
+        self.handler.remove('open', 'user1', '1', 'de')
+        text = self.handler.open('open', 'user2')
         self.assertEqual(text, 'afbc')
 
     def test_save(self):
-        self.handler.new('abc', 'user1')
-        self.handler.add('abc', 'user1', '0', 'abc')
-        self.handler.open('abc', 'user2')
-        self.handler.save('abc', 'user1')
-        self.handler.remove('abc', 'user2', '1', 'bc')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.new('save', 'user1')
+        self.handler.add('save', 'user1', '0', 'abc')
+        self.handler.open('save', 'user2')
+        self.handler.save('save', 'user1')
+        self.handler.remove('save', 'user2', '1', 'bc')
+        with open(f'{self.repository}\\files\\save\\actual') as f:
             self.assertEqual(f.read(), 'a')
-        with open(f'{self.repository}\\files\\abc\\0') as f:
+        with open(f'{self.repository}\\files\\save\\0') as f:
             self.assertEqual(f.read(), 'abc')
-        self.handler.save('abc', 'user2')
-        self.handler.add('abc', 'user1', '0', 'def')
-        with open(f'{self.repository}\\files\\abc\\actual') as f:
+        self.handler.save('save', 'user2')
+        self.handler.add('save', 'user1', '0', 'def')
+        with open(f'{self.repository}\\files\\save\\actual') as f:
             self.assertEqual(f.read(), 'defa')
-        with open(f'{self.repository}\\files\\abc\\0') as f:
+        with open(f'{self.repository}\\files\\save\\0') as f:
             self.assertEqual(f.read(), 'abc')
-        with open(f'{self.repository}\\files\\abc\\1') as f:
+        with open(f'{self.repository}\\files\\save\\1') as f:
             self.assertEqual(f.read(), 'a')
 
     def test_watch(self):
-        self.handler.new('abc', 'user1')
-        self.handler.add('abc', 'user1', '0', 'abc')
-        self.handler.open('abc', 'user2')
-        self.handler.save('abc', 'user1')
-        self.handler.remove('abc', 'user2', '1', 'bc')
-        text = self.handler.watch('abc', 'actual')
+        self.handler.new('watch', 'user1')
+        self.handler.add('watch', 'user1', '0', 'abc')
+        self.handler.open('watch', 'user2')
+        self.handler.save('watch', 'user1')
+        self.handler.remove('watch', 'user2', '1', 'bc')
+        text = self.handler.watch('watch', 'actual')
         self.assertEqual(text, 'a')
-        text = self.handler.watch('abc', '0')
+        text = self.handler.watch('watch', '0')
         self.assertEqual(text, 'abc')
-        self.handler.save('abc', 'user2')
-        self.handler.add('abc', 'user1', '0', 'def')
-        text = self.handler.watch('abc', 'actual')
+        self.handler.save('watch', 'user2')
+        self.handler.add('watch', 'user1', '0', 'def')
+        text = self.handler.watch('watch', 'actual')
         self.assertEqual(text, 'defa')
-        text = self.handler.watch('abc', '0')
+        text = self.handler.watch('watch', '0')
         self.assertEqual(text, 'abc')
-        text = self.handler.watch('abc', '1')
+        text = self.handler.watch('watch', '1')
         self.assertEqual(text, 'a')
 
 

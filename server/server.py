@@ -44,7 +44,7 @@ async def handler(websocket, _path):
 
         while True:
             message = await websocket.recv()
-            
+
             if message[:2] == 'o ':
                 try:
                     filename = message[2:]
