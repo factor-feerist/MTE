@@ -1,3 +1,4 @@
+import sys
 import asyncio
 from modules.file_handler import FileHandler
 try:
@@ -15,6 +16,7 @@ lock = asyncio.Lock()
 sockets = {}
 f_handler = FileHandler()
 
+
 async def login_user(websocket):
     while True:
         message = await websocket.recv()
@@ -30,12 +32,13 @@ async def login_user(websocket):
                 return user
             else:
                 await websocket.send("Имя занято")
-        
-async def handler(websocket, path):
+
+
+async def handler(websocket, _path):
     """Принимает команты вида 'ccd+', где cc - имя команды"""
     print("Client connected")
+    user = None
     try:
-        user = None
         user = await login_user(websocket)
         filename = None
 
@@ -64,7 +67,8 @@ async def handler(websocket, path):
                     ops = message[2:].split()
                     version = f_handler.save(*ops)
                     await websocket.send(f"OK")
-                    await websocket.send(f"Version {version} of file {ops[0]} was saved")
+                    await websocket.send(
+                        f"Version {version} of file {ops[0]} was saved")
                 except Exception as e:
                     await websocket.send(str(e))
 
@@ -106,7 +110,7 @@ async def handler(websocket, path):
 
             elif message[:2] == 'c ':
                 try:
-                    version = f_handler.remove_user_from_files(message[2:])
+                    f_handler.remove_user_from_files(message[2:])
                     await websocket.send(f"OK")
                     await websocket.send(f"File {filename} was closed")
                 except Exception as e:
@@ -123,6 +127,14 @@ async def handler(websocket, path):
             f_handler.remove_user_from_files(user)
     print("Client disconnected")
 
-start_server = websockets.serve(handler, "localhost", 8765)
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+
+async def main():
+    async with websockets.serve(handler, "localhost", 8765):
+        await asyncio.Future()
+
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        sys.exit(0)

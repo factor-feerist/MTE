@@ -1,4 +1,3 @@
-# здесь код, получающий команды от интерфейса и передающий их client.py
 from difflib import Differ
 
 
@@ -29,12 +28,14 @@ class EditManager:
         to_remove = self.get_text_edits_list(diff_2, '-')
         return to_add, to_remove
 
-    def get_text_edits_list(self, diff, edit_mark):
+    @staticmethod
+    def get_text_edits_list(diff, edit_mark):
         result = []
         index = 0
         for symbol in diff:
             if symbol[0] == edit_mark:
-                if len(result) > 0 and result[-1][0] + len(result[-1][1]) == index:
+                if (len(result) > 0
+                        and result[-1][0] + len(result[-1][1]) == index):
                     sequence_index = result[-1][0]
                     sequence_value = result[-1][1]
                     result[-1] = (sequence_index, sequence_value + symbol[2])
@@ -45,12 +46,14 @@ class EditManager:
 
     def enqueue_remove_commands(self, to_remove):
         for element in to_remove:
-            command = f"r {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
+            command = f"r {self.file_name}\\\\{self.username}\\\\" \
+                      f"{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)
 
     def enqueue_add_commands(self, to_add):
         for element in to_add:
-            command = f"a {self.file_name}\\\\{self.username}\\\\{element[0]}\\\\{element[1]}"
+            command = f"a {self.file_name}\\\\{self.username}\\\\" \
+                      f"{element[0]}\\\\{element[1]}"
             self.commands_queue.append(command)
 
     def get_next_command(self):

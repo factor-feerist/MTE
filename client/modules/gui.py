@@ -1,6 +1,6 @@
 import tkinter
 from tkinter.messagebox import showinfo
-from tkinter import Tk, Label, Text, Scrollbar, Menu, VERTICAL, END
+from tkinter import Tk, Text, Scrollbar, Menu, VERTICAL, END
 
 
 class Gui:
@@ -10,7 +10,8 @@ class Gui:
         self.edit = edit
         self.text = Text(self.window, width=400, height=400, wrap="word")
         self.text.insert('1.0', text)
-        self.scrollbar = Scrollbar(self.window, orient=VERTICAL, command=self.text.yview)
+        self.scrollbar = Scrollbar(self.window, orient=VERTICAL,
+                                   command=self.text.yview)
         self.setup_scrollbar()
         self.setup_text()
         self.operations = edit_manager
@@ -54,7 +55,9 @@ class Gui:
     def setup_menu(self):
         if self.edit:
             self.menu.add_cascade(label="Save", command=self.switch_save_flag)
-        self.menu.add_cascade(label="Info", command=lambda: showinfo("Information", "Text Editor"))
+        self.menu.add_cascade(
+            label="Info",
+            command=lambda: showinfo("Information", "Text Editor"))
 
     def update_text(self, text, operations_handler):
         self.text.delete("1.0", tkinter.END)
